@@ -1,0 +1,52 @@
+div, input, dialog {
+	border-radius: 5px;
+}
+
+::backdrop {
+	background-color: transparent;
+}
+
+body {
+	background-color: #121212;
+	color: #fff;
+	font-family: Arial, sans-serif;
+}
+
+dialog {
+	border: 1px solid #555;
+	background-color: #323232;
+	color: #fff;
+}
+
+input, button {
+	border: 1px solid #555;
+	background-color: #2e2e2e;
+	color: #fff;
+}
+
+#chat-app {
+	padding: 2px;
+	margin: 2px;
+}
+
+#messages-view {
+	padding-bottom: 5px;
+}
+
+#message-input {
+	width: 50vh;
+}
+
+.user-message, .system-message {
+	padding: 4px;
+	border: 1px solid #555;
+	color: #fff;
+}
+
+.user-message {
+	background-color: #2e2e2e;
+}
+
+.system-message {
+	background-color: #2e2e66;
+}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="styles.css">
+	<script src="frontend.js"></script>
+	<title>Simple Chat</title>
+</head>
+
+<body>
+	<div id="chat-app">
+		<button id="leave-chat-button" onclick="leaveChat()">Leave Chat</button>
+		<div id="username-label"></div>
+		<div id="messages-view"></div>
+		<input type="text" id="message-input" placeholder="Type a message..." onkeydown="handleKeyPress(event)">
+	</div>
+
+	<dialog id="start-form" open>
+		<label>Enter a username: </label>
+		<input type="text" id="username-input">
+		<button onclick="joinChat()">Join Chat</button>
+		<br>
+		<div id="error-label" style="color: red;">
+	</dialog>
+
+	<script>connectToServer()</script>
+</body>
+
+</html>
