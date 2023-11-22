@@ -5,7 +5,7 @@ let ws;
 let clientUsername;
 
 function connectToServer() {
-	ws = new WebSocket("ws://10.0.0.245:6969");
+	ws = new WebSocket("ws://trustytrojan.servehttp.com:6969");
 
 	ws.onopen = () => console.log("connection opened!");
 
