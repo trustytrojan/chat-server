@@ -1,13 +1,23 @@
 import { WebSocket, WebSocketServer } from "ws";
-import { argv, exit } from "process";
+import { readFileSync } from "fs";
+import express from "express";
+import https from "https";
 
-if (argv.length !== 3) {
-	console.error(`Required arguments: <port>`);
-	exit(1);
-}
+const port = 7070;
 
-const port = Number.parseInt(argv[2]);
-const server = new WebSocketServer({ port });
+const app = express();
+app.use(express.static("chat-app"));
+app.get("/", (_, res) => res.sendFile("index.html"));
+
+const httpServer = https.createServer({
+	key: readFileSync("key.pem"),
+	cert: readFileSync("cert.pem")
+}, app);
+
+const wsServer = new WebSocketServer({ noServer: true });
+
+// upgrade from http to ws
+httpServer.on("upgrade", (req, sock, head) => wsServer.handleUpgrade(req, sock, head, ws => wsServer.emit("connection", ws, req)));
 
 /** @type {Set<WebSocket>} */
 const clients = new Set();
@@ -58,7 +68,7 @@ function announceUserLeave(username) {
 	sendAllClientsInChat(JSON.stringify(obj));
 }
 
-server.on("connection", (client, req) => {
+wsServer.on("connection", (client, req) => {
 	/** @type {string} */
 	let username;
 
@@ -112,4 +122,4 @@ server.on("connection", (client, req) => {
 	});
 });
 
-console.log(`WebSocket server listening on ${port}`);
+httpServer.listen(port, () => console.log(`Listening on ${port}`));
