@@ -1,4 +1,4 @@
-export const
+const
 	USER_JOIN = 0,
 	USER_MESSAGE = 1,
 	USER_LEAVE = 2,
@@ -27,7 +27,7 @@ function connectToServer() {
 		const obj = JSON.parse(str);
 
 		switch (obj.type) {
-			case wstypes.USER_JOIN:
+			case USER_JOIN:
 				if (obj.username === clientUsername) {
 					startForm.attributes.removeNamedItem("open");
 					document.getElementById("username-label").innerHTML = `Your username: <b>${clientUsername}</b>`;
@@ -35,11 +35,11 @@ function connectToServer() {
 				appendSystemMessage(`<b>${clientUsername}</b> has joined the chat`);
 				break;
 
-			case wstypes.USER_MESSAGE:
+			case USER_MESSAGE:
 				appendMessage(createDiv("user-message", `<b>${obj.sender}</b><br>${obj.content}`));
 				break;
 
-			case wstypes.USER_LEAVE:
+			case USER_LEAVE:
 				appendSystemMessage(`<b>${obj.username}</b> has left the chat`);
 				if (obj.username === clientUsername) {
 					ws.close(1000, "left the chat");
@@ -48,7 +48,7 @@ function connectToServer() {
 				}
 				break;
 			
-			case wstypes.ERR_USERNAME_TAKEN:
+			case ERR_USERNAME_TAKEN:
 				startForm.setAttribute("open", "");
 				document.getElementById("error-label").textContent = "Error: username already taken!";			
 				break;
@@ -119,7 +119,7 @@ function joinChat() {
 		return;
 	}
 
-	ws.send(JSON.stringify({ type: wstypes.USER_JOIN, username: clientUsername }));
+	ws.send(JSON.stringify({ type: USER_JOIN, username: clientUsername }));
 }
 
 function sendMessage() {
@@ -127,12 +127,12 @@ function sendMessage() {
 	const content = inputElement.value;
 	inputElement.value = "";
 	if (!content.trim()) return;
-	ws.send(JSON.stringify({ type: wstypes.USER_MESSAGE, content }));
+	ws.send(JSON.stringify({ type: USER_MESSAGE, content }));
 }
 
 /**
  * Called in `index.html`
  */
 function leaveChat() {
-	ws.send(JSON.stringify({ type: wstypes.USER_LEAVE }));
+	ws.send(JSON.stringify({ type: USER_LEAVE }));
 }

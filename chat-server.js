@@ -3,7 +3,14 @@ import { readFileSync } from "fs";
 import express from "express";
 import https from "https";
 import { argv, exit } from "process";
-import * as wstypes from "./public/frontend.js";
+
+const
+	USER_JOIN = 0,
+	USER_MESSAGE = 1,
+	USER_LEAVE = 2,
+	ERR_USERNAME_TAKEN = 3,
+	USER_TYPING = 4,
+	USER_STOP_TYPING = 5;
 
 if (argv.length !== 5) {
 	console.error("Required args: <port> <key_file> <cert_file>");
@@ -50,7 +57,7 @@ function sendAllClientsInChat(json) {
  * @param {string} username
  */
 function announceUserJoin(username) {
-	const obj = { type: wstypes.USER_JOIN, username };
+	const obj = { type: USER_JOIN, username };
 	sendAllClientsInChat(JSON.stringify(obj));
 }
 
@@ -59,7 +66,7 @@ function announceUserJoin(username) {
  * @param {string} content 
  */
 function distributeUserMessage(sender, content) {
-	const obj = { type: wstypes.USER_MESSAGE, sender, content };
+	const obj = { type: USER_MESSAGE, sender, content };
 	sendAllClientsInChat(JSON.stringify(obj));
 }
 
@@ -67,7 +74,7 @@ function distributeUserMessage(sender, content) {
  * @param {string} username
  */
 function announceUserLeave(username) {
-	const obj = { type: wstypes.USER_LEAVE, username };
+	const obj = { type: USER_LEAVE, username };
 	sendAllClientsInChat(JSON.stringify(obj));
 }
 
@@ -96,12 +103,12 @@ wsServer.on("connection", (client, req) => {
 
 		switch (obj.type) {
 			// join object
-			case wstypes.USER_JOIN: {
+			case USER_JOIN: {
 				({ username } = obj);
 
 				if (clientsInChat.has(username)) {
 					logClientAction(`attempted to get username "${username}", but it was already taken`);
-					client.send(JSON.stringify({ type: wstypes.ERR_USERNAME_TAKEN }));
+					client.send(JSON.stringify({ type: ERR_USERNAME_TAKEN }));
 					break;
 				}
 
@@ -111,14 +118,14 @@ wsServer.on("connection", (client, req) => {
 			} break;
 
 			// message object
-			case wstypes.USER_MESSAGE: {
+			case USER_MESSAGE: {
 				const { content } = obj;
 				logClientAction(`sent a message: "${content}"`);
 				distributeUserMessage(username, content);
 			} break;
 
 			// leave object
-			case wstypes.USER_LEAVE: {
+			case USER_LEAVE: {
 				logClientAction(`has requested to leave the chat`);
 				announceUserLeave(username);
 				clients.delete(client);
