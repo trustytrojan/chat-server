@@ -1,13 +1,20 @@
+const USER_JOIN = 0,
+	USER_MESSAGE = 1,
+	USER_LEAVE = 2,
+	ERR_USERNAME_TAKEN = 3,
+	USER_TYPING = 4,
+	USER_STOP_TYPING = 5;
+
 /** @type {WebSocket} */
 let ws;
 
 /** @type {string} */
-let clientUsername;
+let username;
 
 function connectToServer() {
-	ws = new WebSocket("wss://trustytrojan.servehttp.com:6969");
+	ws = new WebSocket("wss://trustytrojan.servehttp.com:7070");
 
-	ws.onopen = () => console.log("connection opened!");
+	ws.onopen = () => console.log("WebSocket connection opened");
 
 	/** @type {(_: import("ws").MessageEvent) => any} */
 	ws.onmessage = ev => {
@@ -16,27 +23,45 @@ function connectToServer() {
 		const obj = JSON.parse(str);
 
 		switch (obj.type) {
-			case 0: appendUserJoin(obj); break;
-			case 1: appendUserMessage(obj); break;
-			case 2: appendUserLeave(obj); break;
-			case 3: errorUsernameTaken(); break;
+			case USER_JOIN:
+				appendUserJoin(obj);
+				break;
+			case USER_MESSAGE:
+				appendUserMessage(obj);
+				break;
+			case USER_LEAVE:
+				appendUserLeave(obj);
+				break;
+			case ERR_USERNAME_TAKEN:
+				errorUsernameTaken();
+				break;
 		}
 	};
 
 	/** @type {(_: import("ws").Event) => any} */
 	ws.onerror = ev => {
-		console.error(ev);
 		if (ev.type === "error")
 			document.getElementById("error-label").textContent = "Error connecting to chat server!";
 	};
 
-	ws.onclose = () => console.log("connection closed!");
+	ws.onclose = () => console.log("WebSocket connection closed");
+}
+
+/** @type {HTMLDivElement} */
+let messagesView;
+
+/** @type {HTMLDialogElement} */
+let startForm;
+
+function populateElementReferences() {
+	messagesView = document.getElementById("messages-view");
+	startForm = document.getElementById("start-form");
 }
 
 /** 
  * @param {HTMLDivElement} messageElement
  */
-const appendMessage = messageElement => document.getElementById("messages-view").appendChild(messageElement);
+const appendMessage = messageElement => messagesView.appendChild(messageElement);
 
 /**
  * @param {string} className 
@@ -67,7 +92,7 @@ function appendUserMessage({ sender, content }) {
  * @param {{ username: string }} 
  */
 function appendUserJoin({ username }) {
-	if (username === clientUsername) {
+	if (username === username) {
 		document.getElementById("start-form").attributes.removeNamedItem("open");
 		document.getElementById("username-label").innerHTML = `Your username: <b>${username}</b>`;
 	}
@@ -81,7 +106,7 @@ function appendUserJoin({ username }) {
 function appendUserLeave({ username }) {
 	appendSystemMessage(`<b>${username}</b> has left the chat`);
 
-	if (username === clientUsername) {
+	if (username === username) {
 		ws.close(1000, "left the chat");
 		document.getElementById("message-input").setAttribute("disabled", "");
 		document.getElementById("leave-chat-button").setAttribute("disabled", "");
@@ -103,24 +128,24 @@ function handleKeyPress(event) {
 }
 
 function joinChat() {
-	clientUsername = document.getElementById("username-input").value;
+	username = document.getElementById("username-input").value;
 
-	if (!clientUsername.trim()) {
+	if (!username.trim()) {
 		document.getElementById("error-label").textContent = "Error: username cannot be empty!";
 		return;
 	}
 
-	ws.send(`{"type":0,"username":"${clientUsername}"}`);
+	ws.send(JSON.stringify({ type: USER_JOIN, username }));
 }
 
 function sendMessage() {
 	const inputElement = document.getElementById("message-input");
-	const messageContent = inputElement.value;
+	const content = inputElement.value;
 	inputElement.value = "";
-	if (!messageContent.trim()) return;
-	ws.send(`{"type":1,"content":"${messageContent}"}`);
+	if (!content.trim()) return;
+	ws.send(JSON.stringify({ type: USER_MESSAGE, content }));
 }
 
 function leaveChat() {
-	ws.send(`{"type":2}`);
+	ws.send(JSON.stringify({ type: USER_LEAVE }));
 }
