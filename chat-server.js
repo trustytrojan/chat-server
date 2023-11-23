@@ -2,16 +2,24 @@ import { WebSocket, WebSocketServer } from "ws";
 import { readFileSync } from "fs";
 import express from "express";
 import https from "https";
+import { argv, exit } from "process";
 
-const port = 7070;
+if (argv.length !== 5) {
+	console.error("Required args: <port> <key_file> <cert_file>");
+	exit(1);
+}
+
+const port = Number.parseInt(argv[2]);
+const keyPath = argv[3];
+const certPath = argv[4];
 
 const app = express();
-app.use(express.static("chat-app"));
+app.use(express.static("public"));
 app.get("/", (_, res) => res.sendFile("index.html"));
 
 const httpServer = https.createServer({
-	key: readFileSync("key.pem"),
-	cert: readFileSync("cert.pem")
+	key: readFileSync(keyPath),
+	cert: readFileSync(certPath)
 }, app);
 
 const wsServer = new WebSocketServer({ noServer: true });
