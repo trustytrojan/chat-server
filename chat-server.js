@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import express from "express";
 import https from "https";
 import { argv, exit } from "process";
-import * as wstypes from "./public/wstypes.js";
+import * as wstypes from "./public/frontend.js";
 
 if (argv.length !== 5) {
 	console.error("Required args: <port> <key_file> <cert_file>");
