@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 import express from "express";
 import https from "https";
 import { argv, exit } from "process";
+import * as wstypes from "./public/wstypes.js";
 
 if (argv.length !== 5) {
 	console.error("Required args: <port> <key_file> <cert_file>");
@@ -30,23 +31,17 @@ httpServer.on("upgrade", (req, sock, head) => wsServer.handleUpgrade(req, sock, 
 /** @type {Set<WebSocket>} */
 const clients = new Set();
 
-/** @type {Map<string, WebSocket>} */
-const clientsByUsername = new Map();
-
 /**
- * @param {string} json
+ * Maps usernames to client sockets.
+ * @type {Map<string, WebSocket>}
  */
-function sendAllClients(json) {
-	for (const client of clients) {
-		client.send(json);
-	}
-}
+const clientsInChat = new Map();
 
 /**
  * @param {string} json
  */
 function sendAllClientsInChat(json) {
-	for (const client of clientsByUsername.values()) {
+	for (const client of clientsInChat.values()) {
 		client.send(json);
 	}
 }
@@ -55,7 +50,7 @@ function sendAllClientsInChat(json) {
  * @param {string} username
  */
 function announceUserJoin(username) {
-	const obj = { type: 0, username };
+	const obj = { type: wstypes.USER_JOIN, username };
 	sendAllClientsInChat(JSON.stringify(obj));
 }
 
@@ -64,7 +59,7 @@ function announceUserJoin(username) {
  * @param {string} content 
  */
 function distributeUserMessage(sender, content) {
-	const obj = { type: 1, sender, content };
+	const obj = { type: wstypes.USER_MESSAGE, sender, content };
 	sendAllClientsInChat(JSON.stringify(obj));
 }
 
@@ -72,7 +67,7 @@ function distributeUserMessage(sender, content) {
  * @param {string} username
  */
 function announceUserLeave(username) {
-	const obj = { type: 2, username };
+	const obj = { type: wstypes.USER_LEAVE, username };
 	sendAllClientsInChat(JSON.stringify(obj));
 }
 
@@ -80,6 +75,9 @@ wsServer.on("connection", (client, req) => {
 	/** @type {string} */
 	let username;
 
+	/**
+	 * @param {string} action 
+	 */
 	const logClientAction = (action) => console.log(`[${req.socket.remoteAddress}:${req.socket.remotePort}${username ? ` (${username})` : ""}] ${action}`);
 
 	logClientAction(`has connected`);
@@ -88,7 +86,7 @@ wsServer.on("connection", (client, req) => {
 	client.on("close", (code, reason) => {
 		logClientAction(`has disconnected\n\tCode: ${code}\n\tReason: ${reason}`);
 		clients.delete(client);
-		clientsByUsername.delete(username);
+		clientsInChat.delete(username);
 	});
 
 	client.on("message", data => {
@@ -98,33 +96,33 @@ wsServer.on("connection", (client, req) => {
 
 		switch (obj.type) {
 			// join object
-			case 0: {
+			case wstypes.USER_JOIN: {
 				({ username } = obj);
 
-				if (clientsByUsername.has(username)) {
+				if (clientsInChat.has(username)) {
 					logClientAction(`attempted to get username "${username}", but it was already taken`);
-					client.send(`{"type":3}`);
+					client.send(JSON.stringify({ type: wstypes.ERR_USERNAME_TAKEN }));
 					break;
 				}
 
-				clientsByUsername.set(username, client);
+				clientsInChat.set(username, client);
 				announceUserJoin(username);
 				logClientAction(`has taken username "${username}"`);
 			} break;
 
 			// message object
-			case 1: {
+			case wstypes.USER_MESSAGE: {
 				const { content } = obj;
 				logClientAction(`sent a message: "${content}"`);
 				distributeUserMessage(username, content);
 			} break;
 
 			// leave object
-			case 2: {
+			case wstypes.USER_LEAVE: {
 				logClientAction(`has requested to leave the chat`);
 				announceUserLeave(username);
 				clients.delete(client);
-				clientsByUsername.delete(username);
+				clientsInChat.delete(username);
 			} break;
 		}
 	});

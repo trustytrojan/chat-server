@@ -14,7 +14,7 @@
 		<button id="leave-chat-button" onclick="leaveChat()">Leave Chat</button>
 		<div id="username-label"></div>
 		<div id="messages-view"></div>
-		<input type="text" id="message-input" placeholder="Type a message..." onkeydown="handleKeyPress(event)">
+		<input type="text" id="message-input" placeholder="Type a message..." onkeydown="if (event.key === `Enter`) sendMessage()">
 	</div>
 
 	<dialog id="start-form" open>
@@ -25,10 +25,7 @@
 		<div id="error-label" style="color: red;">
 	</dialog>
 
-	<script>
-		
-		connectToServer();
-	</script>
+	<script>connectToServer()</script>
 </body>
 
 </html>
