@@ -1,1 +1,0 @@
-ssh root@chat.trustytrojan.dev "bash -c 'cd chat-webapp && git pull && source run.sh'"
