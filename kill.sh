@@ -1,1 +1,0 @@
-kill $(cat pidfile) && rm pidfile
