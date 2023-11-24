@@ -31,13 +31,12 @@ input, button {
 
 #messages-view {
 	padding-bottom: 5px;
-	height: 90vh;
 	overflow: auto;
 	border: 1px solid #555;
 }
 
 #message-input {
-	width: 90vw;
+	width: 100vw;
 }
 
 .user-message, .system-message {
