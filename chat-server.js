@@ -82,6 +82,12 @@ wsServer.on("connection", (client, req) => {
 	let username;
 
 	/**
+	 * @param {number} type 
+	 * @param {object} obj 
+	 */
+	const sendChatData = (type, obj) => client.send(JSON.stringify({ type, ...obj }));
+
+	/**
 	 * @param {string} action 
 	 */
 	const logClientAction = (action) => console.log(`[${req.socket.remoteAddress}:${req.socket.remotePort}${username ? ` (${username})` : ""}] ${action}`);
@@ -101,35 +107,34 @@ wsServer.on("connection", (client, req) => {
 		const obj = JSON.parse(str);
 
 		switch (obj.type) {
-			// join object
-			case USER_JOIN: {
+			case USER_JOIN:
 				({ username } = obj);
-
 				if (clientsInChat.has(username)) {
 					logClientAction(`attempted to get username "${username}", but it was already taken`);
 					client.send(JSON.stringify({ type: ERR_USERNAME_TAKEN }));
 					break;
 				}
-
 				clientsInChat.set(username, client);
 				announceUserJoin(username);
 				logClientAction(`has taken username "${username}"`);
-			} break;
+				break;
 
-			// message object
 			case USER_MESSAGE: {
 				const { content } = obj;
 				logClientAction(`sent a message: "${content}"`);
 				distributeUserMessage(username, content);
 			} break;
 
-			// leave object
 			case USER_LEAVE: {
 				logClientAction(`has requested to leave the chat`);
 				announceUserLeave(username);
 				clients.delete(client);
 				clientsInChat.delete(username);
 			} break;
+
+			case USER_TYPING: {
+
+			} 
 		}
 	});
 });

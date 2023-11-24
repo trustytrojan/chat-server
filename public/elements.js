@@ -19,6 +19,12 @@ let usernameLabel;
 /** @type {HTMLButtonElement} */
 let leaveChatButton;
 
+/** @type {HTMLDivElement} */
+let typingLabel;
+
+/** @type {HTMLDivElement} */
+let typingUsernames;
+
 /**
  * Called immediately after creating and rendering the elements in `index.html`.
  */
@@ -30,6 +36,8 @@ const populateElementReferences = () => {
 	errorLabel = document.getElementById("error-label");
 	usernameLabel = document.getElementById("username-label");
 	leaveChatButton = document.getElementById("leave-chat-button");
+	typingLabel = document.getElementById("typing-label");
+	typingUsernames = document.getElementById("typing-usernames");
 };
 
 /**

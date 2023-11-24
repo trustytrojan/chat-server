@@ -38,6 +38,11 @@ const openWebSocket = () => {
 				}
 				break;
 
+			case USER_TYPING:
+				typingLabel.hidden = false;
+				typingUsernames.appendChild(createDiv("typing-username", ));
+				break;
+
 			case ERR_USERNAME_TAKEN:
 				errorLabel.textContent = "Error: username already taken!";
 				break;

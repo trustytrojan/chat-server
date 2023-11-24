@@ -56,3 +56,12 @@ input, button {
 .system-message {
 	background-color: #2e2e66;
 }
+
+#typing-label {
+	font-style: italic;
+}
+
+.typing-username {
+	display: inline;
+	font-style: bold;
+}
