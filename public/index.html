@@ -4,23 +4,32 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Simple Chat</title>
+
+	<!-- resources -->
 	<link rel="stylesheet" href="styles.css">
 	<script src="frontend.js"></script>
 	<script src="elements.js"></script>
-	<title>Simple Chat</title>
+
+	<script>
+		/**
+		 * @param {() => any} func
+		 */
+		const ifEnter = (func) => { if (event.key === "Enter") func(); }
+	</script>
 </head>
 
 <body>
-	<button id="leave-chat-button" onclick="leaveChat()">Leave Chat</button>
 	<div id="username-label"></div>
+	<button id="leave-chat-button" onclick="leaveChat()">Leave Chat</button>
 	<div id="messages-view"></div>
 	<!-- `-webkit-fill-available` only works in chrome from what i've seen... -->
 	<input type="text" id="message-input" placeholder="Type a message..."
-		onkeydown="if (event.key === 'Enter') sendMessage()" style="width: -webkit-fill-available">
+		onkeydown="ifEnter(sendMessage)">
 
-	<dialog id="start-form" open>
+	<dialog id="start-form">
 		<label>Enter a username: </label>
-		<input type="text" id="username-input">
+		<input type="text" id="username-input" onkeydown="ifEnter(joinChat)">
 		<button onclick="joinChat()">Join Chat</button>
 		<br>
 		<div id="error-label" style="color: red;"></div>

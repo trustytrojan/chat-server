@@ -18,17 +18,16 @@ let clientUsername;
 const openWebSocket = () => {
 	ws = new WebSocket("wss://chat.trustytrojan.dev");
 
-	ws.onopen = () => console.log("WebSocket opened");
+	ws.onopen = () => {
+		startDialog.showModal();
+	};
 
 	ws.onmessage = (ev) => {
-		const str = ev.data.toString();
-		console.log(`[server] -> ${str}`);
-		const obj = JSON.parse(str);
-
+		const obj = JSON.parse(ev.data.toString());
 		switch (obj.type) {
 			case USER_JOIN:
 				if (obj.username === clientUsername) {
-					startForm.attributes.removeNamedItem("open");
+					startDialog.close();
 					usernameLabel.innerHTML = `Your username: <b>${clientUsername}</b>`;
 				}
 				appendSystemMessage(`<b>${clientUsername}</b> has joined the chat`);
@@ -40,16 +39,13 @@ const openWebSocket = () => {
 
 			case USER_LEAVE:
 				appendSystemMessage(`<b>${obj.username}</b> has left the chat`);
-
 				if (obj.username === clientUsername) {
 					ws.close(1000, "left the chat");
 					hideInteractiveElements();
 				}
-
 				break;
 
 			case ERR_USERNAME_TAKEN:
-				startForm.setAttribute("open", "");
 				errorLabel.textContent = "Error: username already taken!";
 				break;
 		}
@@ -60,7 +56,9 @@ const openWebSocket = () => {
 			errorLabel.textContent = "Error connecting to chat server!";
 	};
 
-	ws.onclose = () => console.log("WebSocket closed");
+	ws.onclose = () => {
+		hideInteractiveElements();
+	};
 };
 
 /** 

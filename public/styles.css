@@ -1,43 +1,52 @@
+* {
+	color: #fff;
+	font-family: Arial, sans-serif;
+}
+
 div, input, dialog {
 	border-radius: 5px;
 	padding: 2px;
 }
 
-dialog {
-	position: absolute;
-}
-
-::backdrop {
-	background-color: rgba(0, 0, 0, 0.5);
-}
-
 body {
 	background-color: #121212;
-	color: #fff;
-	font-family: Arial, sans-serif;
 }
 
 dialog {
-	border: 1px solid #555;
+	border: 1px solid #fff5;
 	background-color: #323232;
-	color: #fff;
+	padding: 5px;
+}
+
+dialog::backdrop {
+	background-color: #fff2;
 }
 
 input, button {
-	border: 1px solid #555;
+	border: 1px solid #fffa;
 	background-color: #2e2e2e;
-	color: #fff;
 }
 
 #messages-view {
-	overflow: auto;
 	border: 1px solid #555;
+	overflow: auto;
+	max-height: 90vh;
+	height: fit-content;
+	width: 95vw;
+}
+
+#username-label {
+	display: inline;
+}
+
+#message-input {
+	/* only tested in chrome */
+	width: -webkit-fill-available;
 }
 
 .user-message, .system-message {
-	padding: 4px;
 	border: 1px solid #555;
-	color: #fff;
+	padding: 4px;
 }
 
 .user-message {

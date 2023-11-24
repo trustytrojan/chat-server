@@ -2,7 +2,7 @@
 let messagesView;
 
 /** @type {HTMLDialogElement} */
-let startForm;
+let startDialog;
 
 /** @type {HTMLInputElement} */
 let usernameInput;
@@ -24,7 +24,7 @@ let leaveChatButton;
  */
 const populateElementReferences = () => {
 	messagesView = document.getElementById("messages-view");
-	startForm = document.getElementById("start-form");
+	startDialog = document.getElementById("start-form");
 	usernameInput = document.getElementById("username-input");
 	messageInput = document.getElementById("message-input");
 	errorLabel = document.getElementById("error-label");
