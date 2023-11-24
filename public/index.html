@@ -14,7 +14,7 @@
 		<button id="leave-chat-button" onclick="leaveChat()">Leave Chat</button>
 		<div id="username-label"></div>
 		<div id="messages-view"></div>
-		<input type="text" id="message-input" placeholder="Type a message..." onkeydown="if (event.key === `Enter`) sendMessage()">
+		<input type="text" id="message-input" placeholder="Type a message..." onkeydown="if (event.key === 'Enter') sendMessage()">
 	</div>
 
 	<dialog id="start-form" open>
@@ -22,12 +22,12 @@
 		<input type="text" id="username-input">
 		<button onclick="joinChat()">Join Chat</button>
 		<br>
-		<div id="error-label" style="color: red;">
+		<div id="error-label" style="color: red;"></div>
 	</dialog>
 
 	<script>
 		populateElementReferences();
-		connectToServer();
+		openWebSocket();
 	</script>
 </body>
 

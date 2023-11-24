@@ -1,4 +1,4 @@
-const
+const // object types for the JSON objects going through the WebSocket
 	USER_JOIN = 0,
 	USER_MESSAGE = 1,
 	USER_LEAVE = 2,
@@ -15,13 +15,12 @@ let clientUsername;
 /**
  * Called in `index.html`
  */
-function connectToServer() {
-	ws = new WebSocket("wss://trustytrojan.dev");
+const openWebSocket = () => {
+	ws = new WebSocket("wss://chat.trustytrojan.dev");
 
-	ws.onopen = () => console.log("WebSocket connection opened");
+	ws.onopen = () => console.log("WebSocket opened");
 
-	/** @type {(_: import("ws").MessageEvent) => any} */
-	ws.onmessage = ev => {
+	ws.onmessage = (ev) => {
 		const str = ev.data.toString();
 		console.log(`[server] -> ${str}`);
 		const obj = JSON.parse(str);
@@ -47,22 +46,21 @@ function connectToServer() {
 					document.getElementById("leave-chat-button").setAttribute("disabled", "");
 				}
 				break;
-			
+
 			case ERR_USERNAME_TAKEN:
 				startForm.setAttribute("open", "");
-				document.getElementById("error-label").textContent = "Error: username already taken!";			
+				errorLabel.textContent = "Error: username already taken!";
 				break;
 		}
 	};
 
-	/** @type {(_: import("ws").Event) => any} */
-	ws.onerror = ev => {
+	ws.onerror = (ev) => {
 		if (ev.type === "error")
-			document.getElementById("error-label").textContent = "Error connecting to chat server!";
+		errorLabel.textContent = "Error connecting to chat server!";
 	};
 
-	ws.onclose = () => console.log("WebSocket connection closed");
-}
+	ws.onclose = () => console.log("WebSocket closed");
+};
 
 /** @type {HTMLDivElement} */
 let messagesView;
@@ -70,69 +68,74 @@ let messagesView;
 /** @type {HTMLDialogElement} */
 let startForm;
 
-function populateElementReferences() {
+/** @type {HTMLInputElement} */
+let usernameInput;
+
+/** @type {HTMLInputElement} */
+let messageInput;
+
+/** @type {HTMLDivElement} */
+let errorLabel;
+
+/**
+ * Called immediately after creating and rendering the elements in `index.html`.
+ */
+const populateElementReferences = () => {
 	messagesView = document.getElementById("messages-view");
 	startForm = document.getElementById("start-form");
-}
+	usernameInput = document.getElementById("username-input");
+	messageInput = document.getElementById("message-input");
+	errorLabel = document.getElementById("error-label");
+};
 
 /** 
  * @param {HTMLDivElement} messageElement
  */
-const appendMessage = messageElement => messagesView.appendChild(messageElement);
+const appendMessage = (messageElement) => messagesView.appendChild(messageElement);
 
 /**
  * @param {string} className 
  * @param {string} innerHTML 
  */
-function createDiv(className, innerHTML) {
+const createDiv = (className, innerHTML) => {
 	const div = document.createElement("div");
 	div.className = className;
 	div.innerHTML = innerHTML;
 	return div;
-}
+};
 
 /**
  * @param {string} innerHTML 
  */
-function appendSystemMessage(innerHTML) {
-	appendMessage(createDiv("system-message", innerHTML));
-}
+const appendUserMessage = (innerHTML) => appendMessage(createDiv("user-message", innerHTML));
 
 /**
- * Called in `index.html`
- * @param {KeyboardEvent} event 
+ * @param {string} innerHTML 
  */
-function handleKeyPress(event) {
-	if (event.key === "Enter") {
-		sendMessage();
-	}
-}
+const appendSystemMessage = (innerHTML) => appendMessage(createDiv("system-message", innerHTML));
 
 /**
  * Called in `index.html`
  */
-function joinChat() {
-	clientUsername = document.getElementById("username-input").value;
-
+const joinChat = () => {
+	clientUsername = usernameInput.value;
 	if (!clientUsername.trim()) {
-		document.getElementById("error-label").textContent = "Error: username cannot be empty!";
+		errorLabel.textContent = "Error: username cannot be empty!";
 		return;
 	}
-
 	ws.send(JSON.stringify({ type: USER_JOIN, username: clientUsername }));
-}
+};
 
-function sendMessage() {
-	const inputElement = document.getElementById("message-input");
-	const content = inputElement.value;
-	inputElement.value = "";
+const sendMessage = () => {
+	const content = messageInput.value;
+	messageInput.value = "";
 	if (!content.trim()) return;
 	ws.send(JSON.stringify({ type: USER_MESSAGE, content }));
-}
+};
 
 /**
  * Called in `index.html`
  */
-function leaveChat() {
+const leaveChat = () => {
 	ws.send(JSON.stringify({ type: USER_LEAVE }));
-}
+};
