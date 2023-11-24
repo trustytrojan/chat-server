@@ -6,31 +6,24 @@ const // object types for the JSON objects going through the WebSocket
 	USER_TYPING = 4,
 	USER_STOP_TYPING = 5;
 
-/** @type {WebSocket} */
+/** @type {WebSocket & { sendChatData: (type: number, obj: object) => void }} */
 let ws;
 
 /** @type {string} */
-let clientUsername;
+let username;
 
-/**
- * Called in `index.html`
- */
 const openWebSocket = () => {
 	ws = new WebSocket("wss://chat.trustytrojan.dev");
-
-	ws.onopen = () => {
-		startDialog.showModal();
-	};
-
+	ws.onopen = startDialog.showModal;
 	ws.onmessage = (ev) => {
 		const obj = JSON.parse(ev.data.toString());
 		switch (obj.type) {
 			case USER_JOIN:
-				if (obj.username === clientUsername) {
+				if (obj.username === username) {
 					startDialog.close();
-					usernameLabel.innerHTML = `Your username: <b>${clientUsername}</b>`;
+					usernameLabel.innerHTML = `Your username: <b>${username}</b>`;
 				}
-				appendSystemMessage(`<b>${clientUsername}</b> has joined the chat`);
+				appendSystemMessage(`<b>${username}</b> has joined the chat`);
 				break;
 
 			case USER_MESSAGE:
@@ -39,7 +32,7 @@ const openWebSocket = () => {
 
 			case USER_LEAVE:
 				appendSystemMessage(`<b>${obj.username}</b> has left the chat`);
-				if (obj.username === clientUsername) {
+				if (obj.username === username) {
 					ws.close(1000, "left the chat");
 					hideInteractiveElements();
 				}
@@ -50,15 +43,21 @@ const openWebSocket = () => {
 				break;
 		}
 	};
+	ws.onerror = (ev) => { if (ev.type === "error") errorLabel.textContent = "Error connecting to chat server!"; };
+	ws.onclose = hideInteractiveElements;
+	ws.sendChatData = function (type, obj = {}) { this.send(JSON.stringify({ type, ...obj })); };
+};
 
-	ws.onerror = (ev) => {
-		if (ev.type === "error")
-			errorLabel.textContent = "Error connecting to chat server!";
-	};
-
-	ws.onclose = () => {
-		hideInteractiveElements();
-	};
+/**
+ * @param {KeyboardEvent} ev
+ */
+const messageInputKeyDown = (ev) => {
+	if (ev.key === "Enter")
+		sendMessage();
+	else {
+		startTyping();
+		setTimeout(stopTyping, 1_000);
+	}
 };
 
 /** 
@@ -76,33 +75,19 @@ const appendUserMessage = (innerHTML) => appendMessage(createDiv("user-message",
  */
 const appendSystemMessage = (innerHTML) => appendMessage(createDiv("system-message", innerHTML));
 
-/**
- * Called in `index.html`
- */
 const joinChat = () => {
-	clientUsername = usernameInput.value;
-
-	if (!clientUsername.trim()) {
-		errorLabel.textContent = "Error: username cannot be empty!";
-		return;
-	}
-	
-	ws.send(JSON.stringify({ type: USER_JOIN, username: clientUsername }));
+	username = usernameInput.value;
+	if (!username.trim()) { errorLabel.textContent = "Error: username cannot be empty!"; return; }
+	ws.sendChatData(USER_JOIN, { username });
 };
 
-/**
- * Called in `index.html`
- */
 const sendMessage = () => {
 	const content = messageInput.value;
 	messageInput.value = "";
 	if (!content.trim()) return;
-	ws.send(JSON.stringify({ type: USER_MESSAGE, content }));
+	ws.sendChatData(USER_MESSAGE, { content });
 };
 
-/**
- * Called in `index.html`
- */
-const leaveChat = () => {
-	ws.send(JSON.stringify({ type: USER_LEAVE }));
-};
+const startTyping = () => ws.sendChatData(USER_TYPING);
+const stopTyping = () => ws.sendChatData(USER_STOP_TYPING);
+const leaveChat = () => ws.sendChatData(USER_LEAVE);

@@ -25,7 +25,7 @@
 	<div id="messages-view"></div>
 	<!-- `-webkit-fill-available` only works in chrome from what i've seen... -->
 	<input type="text" id="message-input" placeholder="Type a message..."
-		onkeydown="ifEnter(sendMessage)">
+		onkeydown="messageInputKeyDown(sendMessage)">
 
 	<dialog id="start-form">
 		<label>Enter a username: </label>
