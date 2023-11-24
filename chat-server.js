@@ -47,36 +47,35 @@ const clientsInChat = new Map();
 /**
  * @param {string} json
  */
-function sendAllClientsInChat(json) {
-	for (const client of clientsInChat.values()) {
+const sendAllClientsInChat = (json) => {
+	for (const client of clientsInChat.values())
 		client.send(json);
-	}
-}
+};
 
 /**
  * @param {string} username
  */
-function announceUserJoin(username) {
+const announceUserJoin = (username) => {
 	const obj = { type: USER_JOIN, username };
 	sendAllClientsInChat(JSON.stringify(obj));
-}
+};
 
 /**
  * @param {string} sender 
  * @param {string} content 
  */
-function distributeUserMessage(sender, content) {
+const distributeUserMessage = (sender, content) => {
 	const obj = { type: USER_MESSAGE, sender, content };
 	sendAllClientsInChat(JSON.stringify(obj));
-}
+};
 
 /**
  * @param {string} username
  */
-function announceUserLeave(username) {
+const announceUserLeave = (username) => {
 	const obj = { type: USER_LEAVE, username };
 	sendAllClientsInChat(JSON.stringify(obj));
-}
+};
 
 wsServer.on("connection", (client, req) => {
 	/** @type {string} */
@@ -96,7 +95,7 @@ wsServer.on("connection", (client, req) => {
 		clientsInChat.delete(username);
 	});
 
-	client.on("message", data => {
+	client.on("message", (data) => {
 		const str = data.toString();
 		logClientAction(`-> ${str}`);
 		const obj = JSON.parse(str);

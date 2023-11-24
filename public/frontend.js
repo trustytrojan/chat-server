@@ -29,7 +29,7 @@ const openWebSocket = () => {
 			case USER_JOIN:
 				if (obj.username === clientUsername) {
 					startForm.attributes.removeNamedItem("open");
-					document.getElementById("username-label").innerHTML = `Your username: <b>${clientUsername}</b>`;
+					usernameLabel.innerHTML = `Your username: <b>${clientUsername}</b>`;
 				}
 				appendSystemMessage(`<b>${clientUsername}</b> has joined the chat`);
 				break;
@@ -40,11 +40,12 @@ const openWebSocket = () => {
 
 			case USER_LEAVE:
 				appendSystemMessage(`<b>${obj.username}</b> has left the chat`);
+
 				if (obj.username === clientUsername) {
 					ws.close(1000, "left the chat");
-					document.getElementById("message-input").setAttribute("disabled", "");
-					document.getElementById("leave-chat-button").setAttribute("disabled", "");
+					hideInteractiveElements();
 				}
+
 				break;
 
 			case ERR_USERNAME_TAKEN:
@@ -56,53 +57,16 @@ const openWebSocket = () => {
 
 	ws.onerror = (ev) => {
 		if (ev.type === "error")
-		errorLabel.textContent = "Error connecting to chat server!";
+			errorLabel.textContent = "Error connecting to chat server!";
 	};
 
 	ws.onclose = () => console.log("WebSocket closed");
-};
-
-/** @type {HTMLDivElement} */
-let messagesView;
-
-/** @type {HTMLDialogElement} */
-let startForm;
-
-/** @type {HTMLInputElement} */
-let usernameInput;
-
-/** @type {HTMLInputElement} */
-let messageInput;
-
-/** @type {HTMLDivElement} */
-let errorLabel;
-
-/**
- * Called immediately after creating and rendering the elements in `index.html`.
- */
-const populateElementReferences = () => {
-	messagesView = document.getElementById("messages-view");
-	startForm = document.getElementById("start-form");
-	usernameInput = document.getElementById("username-input");
-	messageInput = document.getElementById("message-input");
-	errorLabel = document.getElementById("error-label");
 };
 
 /** 
  * @param {HTMLDivElement} messageElement
  */
 const appendMessage = (messageElement) => messagesView.appendChild(messageElement);
-
-/**
- * @param {string} className 
- * @param {string} innerHTML 
- */
-const createDiv = (className, innerHTML) => {
-	const div = document.createElement("div");
-	div.className = className;
-	div.innerHTML = innerHTML;
-	return div;
-};
 
 /**
  * @param {string} innerHTML 
@@ -119,13 +83,18 @@ const appendSystemMessage = (innerHTML) => appendMessage(createDiv("system-messa
  */
 const joinChat = () => {
 	clientUsername = usernameInput.value;
+
 	if (!clientUsername.trim()) {
 		errorLabel.textContent = "Error: username cannot be empty!";
 		return;
 	}
+	
 	ws.send(JSON.stringify({ type: USER_JOIN, username: clientUsername }));
 };
 
+/**
+ * Called in `index.html`
+ */
 const sendMessage = () => {
 	const content = messageInput.value;
 	messageInput.value = "";

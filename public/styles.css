@@ -1,5 +1,10 @@
 div, input, dialog {
 	border-radius: 5px;
+	padding: 2px;
+}
+
+dialog {
+	position: absolute;
 }
 
 ::backdrop {
@@ -24,19 +29,9 @@ input, button {
 	color: #fff;
 }
 
-#chat-app {
-	padding: 2px;
-	margin: 2px;
-}
-
 #messages-view {
-	padding-bottom: 5px;
 	overflow: auto;
 	border: 1px solid #555;
-}
-
-#message-input {
-	width: 100vw;
 }
 
 .user-message, .system-message {
