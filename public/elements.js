@@ -41,17 +41,43 @@ const populateElementReferences = () => {
 };
 
 /**
- * @param {string} className 
- * @param {string} innerHTML 
+ * @param {keyof HTMLElementTagNameMap} tagName
+ * @param {{
+ *     className: string | undefined,
+ *     innerHTML: string | undefined,
+ *     id: string | undefined,
+ *     style: CSSStyleDeclaration | undefined,
+ *     appendStyles: CSSStyleDeclaration | undefined
+ * }}
  */
-const createDiv = (className, innerHTML) => {
-	const div = document.createElement("div");
-	div.className = className;
-	div.innerHTML = innerHTML;
-	return div;
+const createElement = (tagName, { className, innerHTML, id, style }) => {
+	const element = document.createElement(tagName);
+	if (className) element.className = className;
+	if (innerHTML) element.innerHTML = innerHTML;
+	if (id) element.id = id;
+	if (style) for (const k in element.style) element.style[k] = style[k];
+	return element;
 };
 
 const hideInteractiveElements = () => {
 	messageInput.hidden = true;
 	leaveChatButton.hidden = true;
 };
+
+/** 
+ * @param {HTMLDivElement} messageElement
+ */
+const appendMessage = (messageElement) => messagesView.appendChild(messageElement);
+
+/**
+ * @param {string} innerHTML 
+ */
+const appendUserMessage = (innerHTML) => appendMessage(createElement("div", { className: "user-message", innerHTML }));
+
+/**
+ * @param {string} innerHTML 
+ */
+const appendSystemMessage = (innerHTML) => appendMessage(createElement("div", { className: "system-message", innerHTML }));
+
+const showTypingLabel = () => typingLabel.style.display = "inline";
+const hideTypingLabel = () => typingLabel.style.display = "none";

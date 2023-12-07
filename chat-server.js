@@ -1,19 +1,17 @@
-import { WebSocket, WebSocketServer } from "ws";
-import { readFileSync } from "fs";
-import express from "express";
-import https from "https";
+import { WebSocketServer } from "ws";
 import { argv, exit } from "process";
+import express from "express";
 
-const
+const // object types for the JSON objects going through the WebSocket
 	USER_JOIN = 0,
 	USER_MESSAGE = 1,
 	USER_LEAVE = 2,
 	ERR_USERNAME_TAKEN = 3,
 	USER_TYPING = 4,
-	USER_STOP_TYPING = 5;
+	USER_STOPPED_TYPING = 5;
 
-if (argv.length !== 5) {
-	console.error("Required args: <port> <key_file> <cert_file>");
+if (argv.length < 3 || argv.length > 5) {
+	console.error("Required args: <port> [<key_file> <cert_file>]\nSupply <key_file> and <cert_file> to enable HTTPS");
 	exit(1);
 }
 
@@ -25,57 +23,61 @@ const app = express();
 app.use(express.static("public"));
 app.get("/", (_, res) => res.sendFile("index.html"));
 
-const httpServer = https.createServer({
-	key: readFileSync(keyPath),
-	cert: readFileSync(certPath)
-}, app);
+const httpServer = (keyPath && certPath)
+	? (await import("https")).createServer({
+		key: readFileSync(keyPath),
+		cert: readFileSync(certPath)
+	}, app)
+	: (await import("http")).createServer(app);
 
 const wsServer = new WebSocketServer({ noServer: true });
 
 // upgrade from http to ws
 httpServer.on("upgrade", (req, sock, head) => wsServer.handleUpgrade(req, sock, head, ws => wsServer.emit("connection", ws, req)));
 
-/** @type {Set<WebSocket>} */
+/** @type {Set<import("ws").WebSocket>} */
 const clients = new Set();
 
 /**
  * Maps usernames to client sockets.
- * @type {Map<string, WebSocket>}
+ * @type {Map<string, import("ws").WebSocket>}
  */
 const clientsInChat = new Map();
 
 /**
- * @param {string} json
+ * @param {number} type 
+ * @param {object} obj 
  */
-const sendAllClientsInChat = (json) => {
+const sendAllClientsInChat = (type, obj) => {
 	for (const client of clientsInChat.values())
-		client.send(json);
+		client.send(JSON.stringify({ type, ...obj }));
 };
 
 /**
  * @param {string} username
  */
-const announceUserJoin = (username) => {
-	const obj = { type: USER_JOIN, username };
-	sendAllClientsInChat(JSON.stringify(obj));
-};
+const announceUserJoin = (username) => sendAllClientsInChat(USER_JOIN, { username });
 
 /**
  * @param {string} sender 
  * @param {string} content 
  */
-const distributeUserMessage = (sender, content) => {
-	const obj = { type: USER_MESSAGE, sender, content };
-	sendAllClientsInChat(JSON.stringify(obj));
-};
+const distributeUserMessage = (sender, content) => sendAllClientsInChat(USER_MESSAGE, { sender, content });
+
+/**
+ * @param {string} username 
+ */
+const distributeUserTyping = (username) => sendAllClientsInChat(USER_TYPING, { username });
+
+/**
+ * @param {string} username 
+ */
+const distributeUserStoppedTyping = (username) => sendAllClientsInChat(USER_STOPPED_TYPING, { username });
 
 /**
  * @param {string} username
  */
-const announceUserLeave = (username) => {
-	const obj = { type: USER_LEAVE, username };
-	sendAllClientsInChat(JSON.stringify(obj));
-};
+const announceUserLeave = (username) => sendAllClientsInChat(USER_LEAVE, { username });
 
 wsServer.on("connection", (client, req) => {
 	/** @type {string} */
@@ -85,7 +87,7 @@ wsServer.on("connection", (client, req) => {
 	 * @param {number} type 
 	 * @param {object} obj 
 	 */
-	const sendChatData = (type, obj) => client.send(JSON.stringify({ type, ...obj }));
+	const sendObj = (type, obj) => client.send(JSON.stringify({ type, ...obj }));
 
 	/**
 	 * @param {string} action 
@@ -111,7 +113,7 @@ wsServer.on("connection", (client, req) => {
 				({ username } = obj);
 				if (clientsInChat.has(username)) {
 					logClientAction(`attempted to get username "${username}", but it was already taken`);
-					client.send(JSON.stringify({ type: ERR_USERNAME_TAKEN }));
+					sendObj(ERR_USERNAME_TAKEN)
 					break;
 				}
 				clientsInChat.set(username, client);
@@ -119,22 +121,27 @@ wsServer.on("connection", (client, req) => {
 				logClientAction(`has taken username "${username}"`);
 				break;
 
-			case USER_MESSAGE: {
-				const { content } = obj;
-				logClientAction(`sent a message: "${content}"`);
-				distributeUserMessage(username, content);
-			} break;
+			case USER_MESSAGE:
+				logClientAction(`sent a message: "${obj.content}"`);
+				distributeUserMessage(username, obj.content);
+				break;
 
-			case USER_LEAVE: {
-				logClientAction(`has requested to leave the chat`);
+			case USER_LEAVE:
+				logClientAction("has requested to leave the chat");
 				announceUserLeave(username);
 				clients.delete(client);
 				clientsInChat.delete(username);
-			} break;
+				break;
 
-			case USER_TYPING: {
+			case USER_TYPING:
+				logClientAction("started typing");
+				distributeUserTyping(username);
+				break;
 
-			} 
+			case USER_STOPPED_TYPING:
+				logClientAction("stopped typing");
+				distributeUserStoppedTyping(username);
+				break;
 		}
 	});
 });

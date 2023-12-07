@@ -58,10 +58,16 @@ input, button {
 }
 
 #typing-label {
-	font-style: italic;
+	display: none;
+	font-size: small;
+	color: gray;
+}
+
+#typing-usernames {
+	display: inline;
 }
 
 .typing-username {
-	display: inline;
 	font-style: bold;
+	color: lightgray;
 }
