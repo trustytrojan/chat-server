@@ -16,7 +16,7 @@ let username;
 let stopTypingTimeout;
 
 const openWebSocket = () => {
-	ws = new WebSocket("wss://chat.trustytrojan.dev");
+	ws = new WebSocket("wsUrl");
 	
 	ws.onopen = startDialog.showModal.bind(startDialog);
 

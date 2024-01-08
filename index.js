@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { argv, exit } from "process";
 import express from "express";
 
@@ -11,17 +11,20 @@ const // object types for the JSON objects going through the WebSocket
 	USER_TYPING = 4,
 	USER_STOPPED_TYPING = 5;
 
-if (argv.length < 3 || argv.length > 5) {
-	console.error("Required args: <port> [<key_file> <cert_file>]\nSupply <key_file> and <cert_file> to enable HTTPS");
+if (argv.length < 4 || argv.length > 6) {
+	console.error("Required args: <port> <ws_url> [<key_file> <cert_file>]\nSupply <key_file> and <cert_file> to enable HTTPS");
 	exit(1);
 }
 
 const port = Number.parseInt(argv[2]);
-const keyPath = argv[3];
-const certPath = argv[4];
+const wsUrl = argv[3];
+const keyPath = argv[4];
+const certPath = argv[5];
+
+writeFileSync("res/_websocket.js", readFileSync("res/websocket.js", "utf8").replace("wsUrl", wsUrl));
 
 const app = express();
-app.use(express.static("public"));
+app.use(express.static("res"));
 app.get("/", (_, res) => res.sendFile("index.html"));
 
 const httpServer = (keyPath && certPath)
