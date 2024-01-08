@@ -1,2 +1,2 @@
-pkill node
-node . 7000 &>log & echo $! >pidfile
+kill $(cat pid)
+node . 7000 wss://trustytrojan.dev/chat &>log & echo $! >pid
