@@ -1,4 +1,4 @@
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import { readFileSync, writeFileSync } from "fs";
 import { argv, exit } from "process";
 import express from "express";
@@ -25,7 +25,6 @@ writeFileSync("res/_websocket.js", readFileSync("res/websocket.js", "utf8").repl
 
 const app = express();
 app.use(express.static("res"));
-app.get("/", (_, res) => res.sendFile("index.html"));
 
 const httpServer = (keyPath && certPath)
 	? (await import("https")).createServer({
