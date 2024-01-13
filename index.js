@@ -1,4 +1,4 @@
-import { WebSocketServer, WebSocket } from "ws";
+import { WebSocketServer } from "ws";
 import { readFileSync, writeFileSync } from "fs";
 import { argv, exit } from "process";
 import express from "express";
