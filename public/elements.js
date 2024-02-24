@@ -1,44 +1,29 @@
 /** @type {HTMLDivElement} */
-let messagesView;
+const messagesView = document.getElementById("messages-view");
 
 /** @type {HTMLDialogElement} */
-let startDialog;
+const startDialog = document.getElementById("start-form");
 
 /** @type {HTMLInputElement} */
-let usernameInput;
+const usernameInput = document.getElementById("username-input");
 
 /** @type {HTMLInputElement} */
-let messageInput;
+const messageInput = document.getElementById("message-input");
 
 /** @type {HTMLDivElement} */
-let errorLabel;
+const errorLabel = document.getElementById("error-label");
 
 /** @type {HTMLDivElement} */
-let usernameLabel;
+const usernameLabel = document.getElementById("username-label");
 
 /** @type {HTMLButtonElement} */
-let leaveChatButton;
+const leaveChatButton = document.getElementById("leave-chat-button");
 
 /** @type {HTMLDivElement} */
-let typingLabel;
+const typingLabel = document.getElementById("typing-label");
 
 /** @type {HTMLDivElement} */
-let typingUsernames;
-
-/**
- * Called immediately after creating and rendering the elements in `index.html`.
- */
-const populateElementReferences = () => {
-	messagesView = document.getElementById("messages-view");
-	startDialog = document.getElementById("start-form");
-	usernameInput = document.getElementById("username-input");
-	messageInput = document.getElementById("message-input");
-	errorLabel = document.getElementById("error-label");
-	usernameLabel = document.getElementById("username-label");
-	leaveChatButton = document.getElementById("leave-chat-button");
-	typingLabel = document.getElementById("typing-label");
-	typingUsernames = document.getElementById("typing-usernames");
-};
+const typingUsernames = document.getElementById("typing-usernames");
 
 /**
  * @param {keyof HTMLElementTagNameMap} tagName

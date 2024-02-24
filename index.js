@@ -1,9 +1,9 @@
 import { WebSocketServer } from "ws";
-import { readFileSync, writeFileSync } from "fs";
 import { argv, exit } from "process";
 import express from "express";
+import { createServer } from 'http';
 
-const // object types for the JSON objects going through the WebSocket
+const // WebSocket JSON object types
 	USER_JOIN = 0,
 	USER_MESSAGE = 1,
 	USER_LEAVE = 2,
@@ -11,31 +11,19 @@ const // object types for the JSON objects going through the WebSocket
 	USER_TYPING = 4,
 	USER_STOPPED_TYPING = 5;
 
-if (argv.length < 4 || argv.length > 6) {
-	console.error("Required args: <port> <ws_url> [<key_file> <cert_file>]\nSupply <key_file> and <cert_file> to enable HTTPS");
+if (argv.length !== 3) {
+	console.error("Port required");
 	exit(1);
 }
 
 const port = Number.parseInt(argv[2]);
-const wsUrl = argv[3];
-const keyPath = argv[4];
-const certPath = argv[5];
-
-writeFileSync("res/_websocket.js", readFileSync("res/websocket.js", "utf8").replace("wsUrl", wsUrl));
 
 const app = express();
-app.use(express.static("res"));
-
-const httpServer = (keyPath && certPath)
-	? (await import("https")).createServer({
-		key: readFileSync(keyPath),
-		cert: readFileSync(certPath)
-	}, app)
-	: (await import("http")).createServer(app);
-
+app.use(express.static("public"));
+const httpServer = createServer(app);
 const wsServer = new WebSocketServer({ noServer: true });
 
-// upgrade from http to ws
+// allow upgrades from http to ws
 httpServer.on("upgrade", (req, sock, head) => wsServer.handleUpgrade(req, sock, head, ws => wsServer.emit("connection", ws, req)));
 
 /** @type {Set<import("ws").WebSocket>} */
@@ -108,7 +96,7 @@ wsServer.on("connection", (client, req) => {
 
 	client.on("message", (data) => {
 		const str = data.toString();
-		logClientAction(`-> ${str}`);
+		logClientAction(`-> ${str}`); // log incoming json data
 		const obj = JSON.parse(str);
 
 		switch (obj.type) {
