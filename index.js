@@ -1,7 +1,7 @@
 import { WebSocketServer } from "ws";
 import { argv, exit } from "process";
-import express from "express";
-import { createServer } from 'http';
+// import express from "express";
+// import { createServer } from 'http';
 
 const // WebSocket JSON object types
 	USER_JOIN = 0,
@@ -18,13 +18,15 @@ if (argv.length !== 3) {
 
 const port = Number.parseInt(argv[2]);
 
-const app = express();
-app.use(express.static("public"));
-const httpServer = createServer(app);
-const wsServer = new WebSocketServer({ noServer: true });
+// const app = express();
+// app.use(express.static("public"));
+// const httpServer = createServer(app);
+// const wsServer = new WebSocketServer({ noServer: true });
+const wsServer = new WebSocketServer({ port }, () => console.log(`Listening on ${port}`));
+// httpServer.listen(port, () => console.log(`Listening on ${port}`));
 
 // allow upgrades from http to ws
-httpServer.on("upgrade", (req, sock, head) => wsServer.handleUpgrade(req, sock, head, ws => wsServer.emit("connection", ws, req)));
+// httpServer.on("upgrade", (req, sock, head) => wsServer.handleUpgrade(req, sock, head, ws => wsServer.emit("connection", ws, req)));
 
 /** @type {Set<import("ws").WebSocket>} */
 const clients = new Set();
@@ -136,5 +138,3 @@ wsServer.on("connection", (client, req) => {
 		}
 	});
 });
-
-httpServer.listen(port, () => console.log(`Listening on ${port}`));
