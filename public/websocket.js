@@ -12,8 +12,8 @@ let username;
 /** @type {number} */
 let stopTypingTimeout;
 
-// const ws = new WebSocket("wss://trustytrojan.dev/chat");
-const ws = new WebSocket("ws://localhost:7000");
+const ws = new WebSocket("wss://trustytrojan.dev/chat");
+// const ws = new WebSocket("ws://localhost:7000");
 
 ws.onopen = startDialog.showModal.bind(startDialog);
 
