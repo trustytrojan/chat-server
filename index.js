@@ -1,7 +1,5 @@
-import { WebSocketServer } from "ws";
-import { argv, exit } from "process";
-// import express from "express";
-// import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
+import { argv, exit } from 'process';
 
 const // WebSocket JSON object types
 	USER_JOIN = 0,
@@ -11,22 +9,14 @@ const // WebSocket JSON object types
 	USER_TYPING = 4,
 	USER_STOPPED_TYPING = 5;
 
-if (argv.length !== 3) {
-	console.error("Port required");
+const port = parseInt(argv[2]);
+
+if (!port) {
+	console.error('Port required');
 	exit(1);
 }
 
-const port = Number.parseInt(argv[2]);
-
-// const app = express();
-// app.use(express.static("public"));
-// const httpServer = createServer(app);
-// const wsServer = new WebSocketServer({ noServer: true });
 const wsServer = new WebSocketServer({ port }, () => console.log(`Listening on ${port}`));
-// httpServer.listen(port, () => console.log(`Listening on ${port}`));
-
-// allow upgrades from http to ws
-// httpServer.on("upgrade", (req, sock, head) => wsServer.handleUpgrade(req, sock, head, ws => wsServer.emit("connection", ws, req)));
 
 /** @type {Set<import("ws").WebSocket>} */
 const clients = new Set();
@@ -72,7 +62,7 @@ const distributeUserStoppedTyping = (username) => sendAllClientsInChat(USER_STOP
  */
 const announceUserLeave = (username) => sendAllClientsInChat(USER_LEAVE, { username });
 
-wsServer.on("connection", (client, req) => {
+wsServer.on('connection', (client, req) => {
 	/** @type {string} */
 	let username;
 
@@ -87,7 +77,7 @@ wsServer.on("connection", (client, req) => {
 	 */
 	const logClientAction = (action) => console.log(`[${req.socket.remoteAddress}:${req.socket.remotePort}${username ? ` (${username})` : ""}] ${action}`);
 
-	logClientAction(`has connected`);
+	logClientAction('has connected');
 	clients.add(client);
 
 	client.on("close", (code, reason) => {
@@ -96,7 +86,7 @@ wsServer.on("connection", (client, req) => {
 		clientsInChat.delete(username);
 	});
 
-	client.on("message", (data) => {
+	client.on('message', (data) => {
 		const str = data.toString();
 		logClientAction(`-> ${str}`); // log incoming json data
 		const obj = JSON.parse(str);
@@ -120,19 +110,19 @@ wsServer.on("connection", (client, req) => {
 				break;
 
 			case USER_LEAVE:
-				logClientAction("has requested to leave the chat");
+				logClientAction('has requested to leave the chat');
 				announceUserLeave(username);
 				clients.delete(client);
 				clientsInChat.delete(username);
 				break;
 
 			case USER_TYPING:
-				logClientAction("started typing");
+				logClientAction('started typing');
 				distributeUserTyping(username);
 				break;
 
 			case USER_STOPPED_TYPING:
-				logClientAction("stopped typing");
+				logClientAction('stopped typing');
 				distributeUserStoppedTyping(username);
 				break;
 		}
